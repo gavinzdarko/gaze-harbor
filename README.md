@@ -2,6 +2,8 @@
 
 A small **experimental assistive interaction prototype**: select large tiles with webcam gaze estimates, then deliberately confirm with a visible dwell countdown. Four harmless actions change only this local page. No arbitrary website, desktop, account, form, purchase or navigation control.
 
+[Preview of the manual demo](docs/demo.png) · [Feature PR](https://github.com/gavinzdarko/gaze-harbor/pull/1)
+
 **Physical eye tracking has not been tested.** Passing synthetic tests is evidence about the interaction logic, not proof of usable gaze accuracy. No medical, universal accessibility, small-target accuracy, latency or performance claims are made.
 
 ## Run locally

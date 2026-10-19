@@ -28,4 +28,14 @@ Real-world calibration quality, completion rate, highlight correctness, intentio
 
 ## CI and manual UI results
 
-Pending final execution. See the public repository's Actions runs; only successful completed runs count as passed evidence.
+Completed successful runs are listed below. Only successful completed runs count as passed evidence.
+
+Completed on 2026-10-19 for source commit `18dc7d7bb4a05084dbd9d8067d4380bfcfb717dd`:
+
+- [GitHub Ubuntu CI (push)](https://github.com/gavinzdarko/gaze-harbor/actions/runs/39300639646): **success**, unit tests + production build + all **7 browser checks**.
+- [GitHub Ubuntu CI (PR)](https://github.com/gavinzdarko/gaze-harbor/actions/runs/39300657787): **success**, same checks.
+- Real WebGazer bundle and local MediaPipe/WASM loading exercised with mocked denial and synthetic blank video. Blank video supplies no face and cannot pass calibration. These checks made no request outside localhost.
+- Manual Chrome UI check: one flower action by mouse and one lighting action by keyboard, correctly labeled. Camera remained off throughout. The [screenshot](demo.png) shows the final manual result; its tile outline is **keyboard focus, not a gaze highlight**.
+- Source/secret review completed. No camera imagery, gaze traces, biometric profiles, credentials or generated vendor bundles are committed. No existing branch protection or ruleset was changed or bypassed.
+
+Later commits that update evidence/documentation are rechecked in the same PR. The PR's final status is authoritative for the merged revision. No physical camera/gaze samples were added by these checks.
