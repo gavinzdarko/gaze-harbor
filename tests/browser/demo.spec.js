@@ -77,6 +77,41 @@ test('SYNTHETIC: denied camera permission leaves activation disabled', async ({ 
   await expect(page.locator('#status')).toContainText('denied');
   await expect(page.locator('#calibration')).toBeHidden(); await expect(page.locator('#pause')).toBeDisabled();
 });
+test('real WebGazer bundle handles mocked permission denial without camera hardware', async ({ page }) => {
+  const requests = []; page.on('request', r => requests.push(r.url()));
+  await page.addInitScript(() => {
+    navigator.mediaDevices.getUserMedia = async () => { throw Object.assign(new Error('Mock permission denial'), { name: 'NotAllowedError' }); };
+  });
+  await page.goto('/'); await page.locator('#start').click();
+  await expect(page.locator('#status')).toContainText('denied');
+  expect(requests.some(url => url.endsWith('/vendor/webgazer.js'))).toBe(true);
+  expect(requests.every(url => new URL(url).hostname === 'localhost')).toBe(true);
+  expect(await page.evaluate(() => window.webgazer.params.saveDataAcrossSessions)).toBe(false);
+});
+test('real local model processes SYNTHETIC blank video and keeps activation disabled', async ({ page }) => {
+  test.setTimeout(60000);
+  const requests = []; page.on('request', r => requests.push(r.url()));
+  await page.addInitScript(() => {
+    navigator.mediaDevices.getUserMedia = async () => {
+      const canvas = document.createElement('canvas'); canvas.width = 640; canvas.height = 480;
+      const ctx = canvas.getContext('2d');
+      const draw = () => { ctx.fillStyle = '#cccccc'; ctx.fillRect(0, 0, 640, 480); };
+      draw(); const stream = canvas.captureStream(15);
+      const timer = setInterval(draw, 66);
+      stream.getTracks()[0].addEventListener('ended', () => clearInterval(timer));
+      return stream;
+    };
+  });
+  await page.goto('/'); await page.locator('#start').click();
+  await expect(page.locator('#calibration')).toBeVisible({ timeout: 45000 });
+  await page.keyboard.press('Space');
+  await expect(page.locator('#cal-count')).toContainText('Eyes not reliably available', { timeout: 10000 });
+  await expect(page.locator('#arm')).toBeHidden();
+  expect(requests.some(url => url.includes('/vendor/mediapipe/face_mesh/') && url.includes('wasm'))).toBe(true);
+  expect(requests.every(url => new URL(url).hostname === 'localhost')).toBe(true);
+  await page.keyboard.press('Escape'); await page.locator('#stop').click();
+  await expect(page.locator('#camera-label')).toHaveText('Camera is off');
+});
 test('SYNTHETIC: tab visibility and viewport changes clear pending dwell', async ({ page }) => {
   await syntheticCamera(page); await page.goto('/'); await page.locator('#start').click(); await calibrate(page);
   await page.locator('#arm').click(); await gaze(page, '#instruction', 200); await gaze(page, '#bloom', 1100);

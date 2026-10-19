@@ -10,7 +10,15 @@ const trainingPoints = [[.12,.15],[.5,.15],[.88,.15],[.12,.5],[.5,.5],[.88,.5],[
 const validationPoints = [[.25,.25],[.75,.25],[.5,.5],[.25,.75],[.75,.75]];
 const targetButtons = [...document.querySelectorAll('[data-target]')];
 
-function status(title, message) { $('instruction').textContent = title; $('status').textContent = message; }
+function status(title, message) {
+  if ($('instruction').textContent !== title) $('instruction').textContent = title;
+  if ($('status').textContent !== message) $('status').textContent = message;
+}
+function calibrationVisible(visible) {
+  $('calibration').hidden = !visible;
+  document.querySelector('main').inert = visible;
+  document.querySelector('.topbar').inert = visible;
+}
 function clearHighlight() {
   for (const el of targetButtons) { el.classList.remove('selected'); el.querySelector('.target-state').textContent = 'LOOK & HOLD'; }
   $('ring').style.setProperty('--progress', '0%'); $('ring').setAttribute('aria-valuenow', '0'); $('ring-symbol').textContent = '·';
@@ -92,10 +100,10 @@ function showPoint() {
 function recalibrate() {
   if (!sessionLive) return;
   camera.resetCalibration(); calibration = new Calibration();
-  setState('calibrating'); $('calibration').hidden = false; showPoint();
+  setState('calibrating'); calibrationVisible(true); showPoint();
 }
 function finishCalibration() {
-  collecting = false; $('calibration').hidden = true;
+  collecting = false; calibrationVisible(false);
   if (calibration.state === 'ready') {
     setState('ready'); status('Calibration check passed', 'Enable gaze activation when ready. Then look at a neutral area before selecting a tile.');
     $('arm').focus();
@@ -167,7 +175,7 @@ function renderDwell(view) {
 function endSession(message = 'Camera tracks stopped. Start a new session whenever you’re ready.') {
   clearTimeout(bootTimer); sessionLive = false; starting = false; collecting = false;
   document.body.classList.remove('session');
-  camera.stop(); calibration = null; $('calibration').hidden = true;
+  camera.stop(); calibration = null; calibrationVisible(false);
   setState('idle'); $('start').disabled = camera.pending; $('start').textContent = camera.pending ? 'Finishing camera request…' : 'Start camera ↗';
   $('camera-label').textContent = 'Camera is off'; $('camera-help').textContent = camera.pending ? 'If permission is still open, dismiss it. Late camera tracks will be stopped.' : 'No session is running.';
   $('tracking').innerHTML = '<span></span> Camera off';
@@ -195,7 +203,7 @@ async function start() {
 }
 function cancel() {
   if (engine.state === 'calibrating') {
-    collecting = false; calibration = null; $('calibration').hidden = true; setState('uncalibrated');
+    collecting = false; calibration = null; calibrationVisible(false); setState('uncalibrated');
     status('Calibration cancelled', 'Activation is disabled. Choose Recalibrate to begin again.'); $('recalibrate').focus();
   } else {
     engine.cancel(performance.now()); clearHighlight();
@@ -228,6 +236,11 @@ for (const id of ['dwell', 'sensitivity']) $(id).addEventListener('input', () =>
   status('Settings updated', 'Pending confirmation cleared. Look away from the tiles before trying again.');
 });
 document.addEventListener('keydown', event => {
+  if (event.key === 'Tab' && engine.state === 'calibrating') {
+    event.preventDefault();
+    const point = $('cal-point');
+    (document.activeElement === point || point.disabled ? $('cal-cancel') : point).focus();
+  }
   if (event.key === 'Escape') { event.preventDefault(); if (starting) endSession(); else cancel(); }
   if (event.code === 'Space' && engine.state === 'calibrating') { event.preventDefault(); collect(); }
 });
@@ -238,7 +251,7 @@ window.addEventListener('pagehide', () => endSession());
 window.addEventListener('blur', () => { if (sessionLive) pause('Window focus changed. Resume explicitly when ready.'); });
 for (const event of ['resize', 'scroll']) window.addEventListener(event, () => {
   if (sessionLive) {
-    collecting = false; calibration = null; $('calibration').hidden = true; setState('uncalibrated');
+    collecting = false; calibration = null; calibrationVisible(false); setState('uncalibrated');
     status('Layout changed · recalibrate', 'Screen positions changed. Activation is disabled until a new calibration passes.');
   }
 }, { passive: true });
