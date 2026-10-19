@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f5f5ee" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' ws://localhost:*; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'" />
+  <meta name="description" content="An experimental local webcam gaze and deliberate dwell demo." />
+  <title>Gaze Harbor · a moment of focus</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/" aria-label="Gaze Harbor home"><span class="brand-icon">◉</span> gaze harbor<span class="beta">EXPERIMENTAL</span></a><span class="local-tag"><span></span> Local processing · no account</span></header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">A LITTLE SPACE TO PRACTICE</p><h1>A moment of focus.<br><span>A deliberate action.</span></h1><p>Explore a gentler way to select. Look at a large tile, hold your gaze,<br class="desktop-break"> and let the confirmation ring fill.</p></div><div class="intro-note"><span class="note-mark">↗</span><p>Just a local playground.<br><strong>Nothing leaves this page.</strong></p></div></section>
+    <div class="workspace">
+      <aside class="panel controls" aria-label="Session setup">
+        <div class="section-heading"><h2>Your session</h2><span id="session-badge" class="badge">NOT STARTED</span></div>
+        <div class="camera-card"><div class="camera-symbol" aria-hidden="true">◎</div><strong id="camera-label">Camera is off</strong><p id="camera-help">Start when you’re ready. Your browser will ask for camera permission.</p></div>
+        <button id="start" class="primary">Start camera <span aria-hidden="true">↗</span></button>
+        <p class="privacy-small">Video and eye features stay in memory. Local model files load after you start. No recording or uploads.</p>
+        <div class="divider"></div>
+        <h3>Make it comfortable</h3>
+        <label for="dwell">Dwell confirmation <output id="dwell-value">1.5 s</output></label><input id="dwell" type="range" min="800" max="3000" step="100" value="1500" /><div class="range-ends"><span>0.8 s</span><span>3.0 s</span></div>
+        <label for="sensitivity">Selection sensitivity <output id="sensitivity-value">Balanced</output></label><input id="sensitivity" type="range" min="50" max="90" step="5" value="70" /><p class="hint">Higher expands the safe center of each tile. Edges and gaps never confirm.</p>
+        <div class="session-buttons"><button id="pause" disabled>Pause</button><button id="recalibrate" disabled>Recalibrate</button></div>
+        <button id="stop" class="text-button" disabled>End session & turn camera off</button>
+        <details><summary>Privacy & requirements</summary><p>Experimental assistive interaction, not medical-grade tracking. Use a desktop webcam, even lighting and a steady head position. Keyboard or mouse is needed for setup. Chrome or Edge on localhost is the initial target; physical compatibility is unverified. No images, gaze traces or calibration profiles are saved. Downloads happen at install and from localhost, separately from video processing.</p></details>
+      </aside>
+      <section class="playground" aria-label="Gaze playground">
+        <div class="board-heading"><div><h2>The playground</h2><p>Four large targets. Only harmless, local actions.</p></div><span id="tracking" class="tracking"><span></span> Waiting to begin</span></div>
+        <div class="status-strip"><div id="ring" class="ring" role="progressbar" aria-label="Dwell confirmation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="ring-symbol">·</span></div><div><strong id="instruction">Make yourself comfortable</strong><p id="status" role="status">Start the camera, then follow the calibration points.</p></div><button id="cancel" title="Cancel pending dwell (Escape)">Cancel <kbd>Esc</kbd></button></div>
+        <button id="arm" class="primary arm" hidden>Enable gaze activation</button>
+        <div id="targets" class="target-grid">
+          <button class="target sage" id="bloom" data-target="bloom"><span class="tile-top">01 <span>↗</span></span><span class="tile-icon" aria-hidden="true">✳</span><strong>Grow a little</strong><span>Add a flower to your garden</span><span class="target-state">LOOK & HOLD</span></button>
+          <button class="target sand" id="light" data-target="light"><span class="tile-top">02 <span>↗</span></span><span class="tile-icon" aria-hidden="true">☼</span><strong>Change the light</strong><span>Switch the playground’s mood</span><span class="target-state">LOOK & HOLD</span></button>
+          <button class="target lavender" id="note" data-target="note"><span class="tile-top">03 <span>↗</span></span><span class="tile-icon" aria-hidden="true">≈</span><strong>A kind reminder</strong><span>Reveal a small encouragement</span><span class="target-state">LOOK & HOLD</span></button>
+          <button class="target blue" id="count" data-target="count"><span class="tile-top">04 <span>↗</span></span><span class="tile-icon" aria-hidden="true">＋</span><strong>Count a moment</strong><span>Add one to your practice counter</span><span class="target-state">LOOK & HOLD</span></button>
+        </div>
+        <div class="result" aria-live="polite"><span class="result-label">YOUR LITTLE CORNER</span><p id="result">A fresh start. Your first moment is waiting.</p><span id="action-count">0 actions</span></div>
+        <p class="board-footnote"><span>◎</span> Look at this line to release a tile before your next action. <span>Mouse & keyboard work too.</span></p>
+      </section>
+    </div>
+    <footer><span>Built for exploration. Move slowly, take breaks.</span><span>Experimental · large targets only · no accuracy claims</span></footer>
+  </main>
+  <section id="calibration" class="calibration" hidden role="dialog" aria-modal="true" aria-label="Calibration">
+    <div class="calibration-instructions"><span class="eyebrow" id="cal-phase">CALIBRATION</span><h2 id="cal-title">Look at the numbered point</h2><p id="cal-help">Keep your head still. Press Space or click the point, then keep looking as samples collect.</p><p id="cal-count" role="status"></p><button id="cal-cancel">Cancel calibration · Escape</button></div>
+    <button id="cal-point" class="cal-point" aria-label="Collect calibration point">1</button>
+  </section>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
